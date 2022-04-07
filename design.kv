@@ -1,0 +1,420 @@
+#:kivy 2.0.0
+#:import Factory kivy.factory.Factory
+
+<NormalText@TextInput>
+    multiline: False
+    write_tab: False
+    selection_color: (187/255, 134/255, 252/255, 0.2)
+    background_color: (230/255, 230/255, 230/255, 1)
+    size_hint: None, None
+    size: dp(200), dp(40)
+
+<PasswordText@NormalText>
+    password: True
+    password_mask: '•'
+    size: dp(400), dp(40)
+
+<BGColor@Widget>
+    background_color: (0, 0, 0, 0)
+    canvas.before:
+        Color:
+            rgba: root.background_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<BGLabel@Label+BGColor>
+<BGBoxLayout@BoxLayout+BGColor>
+<SidebarButton@ActionButton>
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+<CustomPopup@Popup>
+    auto_dismiss: False
+    size_hint: (None, None)
+    size: dp(400), dp(150)
+
+<OKPopup@CustomPopup>
+    text: ''
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: root.text
+        Button:
+            text: "OK"
+            on_press: root.dismiss()
+
+<AboutPopup@Popup>
+    title: "About the App"
+    size_hint: (None, None)
+    size: dp(400), dp(400)
+    auto_dismiss: True
+    BoxLayout:
+        orientation: 'vertical'
+        Image:
+            source: "assets/icon/ic_app_icon.png"
+            size_hint_y: 0.3
+        Label:
+            text: "CyberVault"
+            size_hint_y: 0.05
+        Label:
+            text: "A quick and simple password manager.\n"
+            size_hint_y: 0.15
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.35
+            BGLabel:
+                text: "Made by"
+                background_color: (18/255, 18/255, 18/255, 1)
+                size_hint_x: 0.5
+            BGLabel:
+                text: "supershadoe\nShadowknight1104"
+                background_color: (18/255, 18/255, 18/255, 1)
+                size_hint_x: 0.5
+        Button:
+            text: "OK"
+            on_press: root.dismiss()
+            size_hint_y: 0.15
+
+<DeletePopup@CustomPopup>
+    title: "Delete password"
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: "Do you really want to delete this password?"
+        BoxLayout:
+            orientation: 'horizontal'
+            Button:
+                id: yes_btn
+                text: "Yes"
+                on_press: root.dismiss()
+            Button:
+                text: "No"
+                on_press: root.dismiss()
+
+
+<FinishedSetupPopup@OKPopup>
+    title: "Finished setup"
+    text: "Finished setting up the app"
+
+<InvalidPwdLabel@Label>
+    text: "[b][color=D0342C]Invalid password. Try again[/color][/b]"
+    markup: True
+<PwdNotMatching@Label>
+    text: "[b][color=D0342C]Passwords not matching. Check and try again[/color][/b]"
+    markup: True
+<SetupScreen>:
+    side_note_text1: "Set a master password for your vault\n\nRemember the password very well,\nas you wouldn't be able to open the vault\nif you forget it.\n\n"
+    side_note_text2: "Be sure that your password is\nmore than 10 characters long."
+    pwd1: pwd1
+    pwd2: pwd2
+    BoxLayout:
+        orientation: 'vertical'
+        BGBoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1, 0.1)
+            background_color: (40/255, 40/255, 40/255, 1)
+            Image:
+                source: "assets/icon/ic_app_icon.png"
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    text: "CyberVault"
+                Label:
+                    text: "A quick and simple password manager"
+        BoxLayout:
+            orientation: 'horizontal'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: (20, 0)
+                Widget:
+                    size_hint: (0, 0.1)
+                PasswordText:
+                    id: pwd1
+                    hint_text: "A password you would remember"
+                Widget:
+                    size_hint: (0, 0.05)
+                PasswordText:
+                    id: pwd2
+                    hint_text: "Confirm the password"
+                Widget:
+                    size_hint: (0, 0.25)
+            BoxLayout:
+                orientation: 'vertical'
+                Label:
+                    id: side_note
+                    text: root.side_note_text1 + root.side_note_text2
+                    markup: True
+                BoxLayout:
+                    orientation: 'horizontal'
+                    padding: (20, 20)
+                    Widget:
+                    Button:
+                        font_size: '28sp'
+                        size_hint: (None, None)
+                        size: dp(48), dp(48)
+                        background_normal: ''
+                        background_color: (0, 0, 0, 0)
+                        canvas.before:
+                            Color:
+                                rgba: (187/255, 134/255, 252/255, 1)
+                            Ellipse:
+                                size: self.size
+                                pos: self.pos
+                        text: '»'
+                        on_press:
+                            if len(pwd1.text) >= 10 and len(pwd2.text) >= 10 and pwd1.text == pwd2.text: self.disabled = True; root.setup_tasks(pwd1, pwd2)
+                            else: side_note.text = root.side_note_text1 + "[b][color=D0342C]" + root.side_note_text2 + "\n\nCheck if both passwords are the same.[/color][/b]"
+
+<VaultScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        BGLabel:
+            text: "Passwords"
+            size_hint_y: 0.1
+            background_color: (18/255, 18/255, 18/255, 1)
+        RecycleView:
+            id: pwd_list
+            viewclass: 'Button'
+            size_hint: (1, 1)
+            data: root.fetch_passwords()
+            always_overscroll: False
+            RecycleBoxLayout:
+                orientation: 'vertical'
+                default_size: (None, dp(40))
+                default_size_hint: (1, None)
+                size_hint_y: None
+                height: self.minimum_height
+        BGBoxLayout:
+            id: sidebar
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: 8
+            spacing: 8
+            background_color: (18/255, 18/255, 18/255, 1)
+            SidebarButton:
+                icon: 'assets/icon/ic_add_pwd.png'
+                on_press:
+                    root.manager.transition.direction = "left"
+                    root.manager.switch_to(Factory.AddPwdScreen())
+            Widget:
+                size_hint_y: 5
+            SidebarButton:
+                icon: 'assets/icon/ic_app_icon.png'
+                on_press: Factory.AboutPopup().open()
+
+<AddPwdScreen>
+    BoxLayout:
+        orientation: 'vertical'
+        BGLabel:
+            text: "Add password"
+            size_hint_y: 0.1
+            background_color: (18/255, 18/255, 18/255, 1)
+        BoxLayout:
+            orientation: 'horizontal'
+            Widget:
+            BoxLayout:
+                orientation: 'vertical'
+                Widget:
+                NormalText:
+                    hint_text: "Name of site"
+                    id: site_name
+                    size: dp(400), dp(40)
+                Widget:
+                NormalText:
+                    hint_text: "Username"
+                    id: username
+                    size: dp(400), dp(40)
+                Widget:
+                PasswordText:
+                    hint_text: "The password to store"
+                    id: pwd1
+                Widget:
+                PasswordText:
+                    hint_text: "Confirm that password again"
+                    id: pwd2
+                Widget:
+            Widget:
+            Widget:
+        BGBoxLayout:
+            id: sidebar
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: 8
+            spacing: 8
+            background_color: (18/255, 18/255, 18/255, 1)
+            SidebarButton:
+                icon: 'assets/icon/ic_back_icon.png'
+                on_press:
+                    root.manager.transition.direction = "right"
+                    root.manager.switch_to(Factory.VaultScreen())
+            SidebarButton:
+                icon: 'assets/icon/ic_save_pwd.png'
+                on_press:
+                    reqd_data = (site_name.text, username.text, pwd1.text, pwd2.text)
+                    if all(reqd_data) and pwd1.text == pwd2.text: self.disabled = True; root.save_password(pwd1, pwd2, reqd_data)
+                    else: pwd2.parent.add_widget(Factory.PwdNotMatching())
+            Widget:
+                size_hint_y: 5
+            SidebarButton:
+                icon: 'assets/icon/ic_app_icon.png'
+                on_press: Factory.AboutPopup().open()
+
+<ViewPwdScreen>:
+    title_text: title_text
+    site_name: site_name
+    username: username
+    pwd: pwd
+    BoxLayout:
+        orientation: 'vertical'
+        BGLabel:
+            id: title_text
+            text: "Viewing Password #"
+            size_hint_y: 0.1
+            background_color: (18/255, 18/255, 18/255, 1)
+        BoxLayout:
+            orientation: 'horizontal'
+            Widget:
+            BoxLayout:
+                orientation: 'vertical'
+                Widget:
+                Label:
+                    text: "App/Website where this password is used"
+                Widget:
+                Label:
+                    text: "Username"
+                Widget:
+                Label:
+                    text: "Password"
+                Widget:
+            BoxLayout:
+                orientation: 'vertical'
+                Widget:
+                Label:
+                    id: site_name
+                Widget:
+                Label:
+                    id: username
+                Widget:
+                Label:
+                    id: pwd
+                Widget:
+            Widget:
+        BGBoxLayout:
+            id: sidebar
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: 8
+            spacing: 8
+            background_color: (18/255, 18/255, 18/255, 1)
+            SidebarButton:
+                icon: 'assets/icon/ic_back_icon.png'
+                on_press:
+                    root.manager.transition.direction = "right"
+                    root.manager.switch_to(Factory.VaultScreen())
+            SidebarButton:
+                icon: 'assets/icon/ic_edit_pwd.png'
+                on_press:
+                    root.manager.transition.direction = "left"
+                    root.edit_pwd()
+            SidebarButton:
+                icon: 'assets/icon/ic_delete_pwd.png'
+                on_press:
+                    popup = Factory.DeletePopup()
+                    popup.ids.yes_btn.bind(on_press=root.delete_pwd)
+                    popup.open()
+            Widget:
+                size_hint_y: 5
+            SidebarButton:
+                icon: 'assets/icon/ic_app_icon.png'
+                on_press: Factory.AboutPopup().open()
+
+<LockScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        BGLabel:
+            text: "Your Vault is Locked"
+            size_hint_y: 0.1
+            background_color: (18/255, 18/255, 18/255, 1)
+        FloatLayout:
+            PasswordText:
+                id: pwd
+                hint_text: "Enter your password to unlock the vault"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        BGBoxLayout:
+            id: sidebar
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: 8
+            spacing: 8
+            background_color: (18/255, 18/255, 18/255, 1)
+            SidebarButton:
+                font_size: '32sp'
+                text: "»"
+                on_press: if pwd.text is not None: root.authenticate_user(self, pwd)
+            Widget:
+                size_hint_y: 5
+            SidebarButton:
+                icon: 'assets/icon/ic_app_icon.png'
+                on_press: Factory.AboutPopup().open()
+<EditPwdScreen>:
+    title_text: title_text
+    site_name: site_name
+    username: username
+    pwd1: pwd1
+    pwd2: pwd2
+    BoxLayout:
+        orientation: 'vertical'
+        BGLabel:
+            id: title_text
+            text: "Editing password #"
+            size_hint_y: 0.1
+            background_color: (18/255, 18/255, 18/255, 1)
+        BoxLayout:
+            orientation: 'horizontal'
+            Widget:
+            BoxLayout:
+                orientation: 'vertical'
+                Widget:
+                NormalText:
+                    hint_text: "Name of site"
+                    id: site_name
+                    size: dp(400), dp(40)
+                Widget:
+                NormalText:
+                    hint_text: "Username"
+                    id: username
+                    size: dp(400), dp(40)
+                Widget:
+                PasswordText:
+                    hint_text: "The password to store"
+                    id: pwd1
+                Widget:
+                PasswordText:
+                    hint_text: "Confirm that password again"
+                    id: pwd2
+                Widget:
+            Widget:
+            Widget:
+        BGBoxLayout:
+            id: sidebar
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: 8
+            spacing: 8
+            background_color: (18/255, 18/255, 18/255, 1)
+            SidebarButton:
+                icon: 'assets/icon/ic_back_icon.png'
+                on_press:
+                    root.manager.transition.direction = "right"
+                    root.manager.switch_to(Factory.VaultScreen())
+            SidebarButton:
+                icon: 'assets/icon/ic_save_pwd.png'
+                on_press:
+                    reqd_data = (site_name.text, username.text, pwd1.text, pwd2.text)
+                    if all(reqd_data) and pwd1.text == pwd2.text: self.disabled = True; root.save_password(pwd1, pwd2, reqd_data)
+                    else: pwd2.parent.add_widget(Factory.PwdNotMatching())
+            Widget:
+                size_hint_y: 5
+            SidebarButton:
+                icon: 'assets/icon/ic_app_icon.png'
+                on_press: Factory.AboutPopup().open()
